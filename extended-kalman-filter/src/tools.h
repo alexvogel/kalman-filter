@@ -29,6 +29,21 @@ public:
   */
   MatrixXd CalculateJacobian(const VectorXd& x_state);
 
+  /**
+  * A helper method to calculate Jacobians.
+  */
+  MatrixXd CalculateJacobianAvoge(const VectorXd& x_state);
+
+  /**
+  * A helper method to convert the state matrix into the radar form
+  */
+  VectorXd State2radar(const VectorXd& x_state);
+
+  /**
+  * A helper method to convert the radar matrix into the state form
+  */
+  VectorXd Radar2state(const VectorXd& x_radar);
+
 };
 
 #endif /* TOOLS_H_ */
