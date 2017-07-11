@@ -25,7 +25,6 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
 	//  * the estimation vector size should equal ground truth vector size
 	if(estimations.size() != ground_truth.size()
 			|| estimations.size() == 0){
-		cout << "Invalid estimation or ground_truth data" << endl;
 		return rmse;
 	}
 
@@ -57,10 +56,19 @@ VectorXd Tools::State2radar(const VectorXd& x_state) {
 
 	// calc phi ( bearing: angle between x-axis and rho of object)
 	double phi = atan( x_state(1) / x_state(0) );
-	cout << "phi: " << phi << endl;
 
+	cout << "phi (state2radar): " << phi << endl;
+
+	double rho_dot;
 	// calc rhod-dot (radial velocity: change of rho)
-	double rho_dot = (x_state(0) * x_state(2) + x_state(1) * x_state(3)) / rho;
+	if(fabs(rho) < 0.0001)
+	{
+		rho_dot = 0;
+	}
+	else
+	{
+		rho_dot = (x_state(0) * x_state(2) + x_state(1) * x_state(3)) / rho;
+	}
 
 	VectorXd x_radar(3);
 	x_radar << rho, phi, rho_dot;
@@ -78,8 +86,17 @@ VectorXd Tools::Radar2state(const VectorXd& x_radar) {
 	VectorXd x_state(4);
 	x_state << 0,0,0,0;
 
-	x_state(0) = cos(x_radar(1)) * x_radar(0);
-	x_state(1) = sin(x_radar(1)) * x_radar(0);
+	float rho     = x_radar(0);
+    float phi     = x_radar(1);
+    float rho_dot = x_radar(2);
+
+    cout << "phi radar2state: " << phi << endl;
+
+    x_state(0) = rho     * cos(phi);
+    x_state(1) = rho     * sin(phi);
+//    x_state(2) = rho_dot * cos(phi);
+//    x_state(3) = rho_dot * sin(phi);
+
 
 	return x_state;
 }
@@ -103,6 +120,7 @@ MatrixXd Tools::CalculateJacobianAvoge(const VectorXd& x_state) {
     if(px_square_plus_py_square < 0.0001)
     {
         std::cout << "CalculateJacobian () - Error - Division By Zero";
+        exit(1);
         return Hj;
     }
 
@@ -125,28 +143,34 @@ MatrixXd Tools::CalculateJacobianAvoge(const VectorXd& x_state) {
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-  // Code from lectures quizes
+  /**
+  TODO:
+    * Calculate a Jacobian here.
+  */
+
+  MatrixXd Hj(3,4);
+
+  //recover state parameters
   float px = x_state(0);
   float py = x_state(1);
   float vx = x_state(2);
   float vy = x_state(3);
-  MatrixXd Hj(3,4);
-  // Deal with the special case problems
-  if (fabs(px) < EPS and fabs(py) < EPS){
-	  px = EPS;
-	  py = EPS;
-  }
-  // Pre-compute a set of terms to avoid repeated calculation
+
+
   float c1 = px*px+py*py;
-  // Check division by zero
-  if(fabs(c1) < EPS2){
-	c1 = EPS2;
-  }
   float c2 = sqrt(c1);
   float c3 = (c1*c2);
-  // Compute the Jacobian matrix
+
+  //check division by zero
+  if (fabs(c1) < 0.0001) {
+    cout << "Divide by 0 ERROR:" << endl;
+    return Hj;
+  }
+
   Hj << (px/c2), (py/c2), 0, 0,
-       -(py/c1), (px/c1), 0, 0,
-        py*(vx*py - vy*px)/c3, px*(px*vy - py*vx)/c3, px/c2, py/c2;
+  -(py/c1), (px/c1), 0, 0,
+  py*(vx*py-vy*px)/c3, px*(px*vy-py*vx)/c3, px/c2, py/c2;
+
   return Hj;
+
 }

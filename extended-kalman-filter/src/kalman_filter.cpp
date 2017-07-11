@@ -34,7 +34,6 @@ void KalmanFilter::Predict() {
   MatrixXd Ft = F_.transpose();
   P_ = F_ * P_ * Ft + Q_;
 
-  std::cout << "... prediction finished" << std::endl;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
@@ -66,37 +65,48 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   TODO:
     * update the state by using Extended Kalman Filter equations
   */
+  
+  // convert the predicted state vector to the 3D format
 
-  // H_ is already the Hj (jacobian) when UpdateEKF is called
-
-  // convert the predicted state from the 4D world (px, py, vx, vy) to the 3D world of radar (rho, phi, rho-dot)
-  VectorXd h = tools2.State2radar(x_); //
-  VectorXd y = z - h;
-
-  // if phi (y(1)) is out of range -pi < phi < +pi, then it will be normalized into this range
-  while(y(1) < -M_PI)
+  float px = x_[0];
+  float py = x_[1];
+  float vx = x_[2];
+  float vy = x_[3];
+  float norm = sqrt((px * px) + (py * py));
+  
+  // create vector to represent h(x) ((or z_pred)) function for RADAR updating
+  VectorXd z_pred(3);
+  
+  // convert cartesian predictions into polar coordinates
+  if (norm > 0.00001)
   {
-	y(1) += 2 * M_PI;
-	cout << "normalizing phi..." << endl;
+	z_pred(0) = norm;
+	z_pred(1) = atan2(py,px);
+	z_pred(2) = ((px * vx) + (py * vy)) / norm;
   }
-  while(y(1) > M_PI)
+  
+  else
   {
-	y(1) -= 2 * M_PI;
-	cout << "normalizing phi..." << endl;
+	  z_pred = (H_ * x_);
   }
-  cout << "y = " << y << endl;
-
+  
+  
+  // compare measurements with predictions
+  VectorXd y = z - z_pred;
+ 
+  // Normalize phi angle
+  while (y(1) > M_PI) y(1) -= 2.*M_PI;
+  while (y(1) < -M_PI) y(1) += 2.*M_PI;
+  
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();
-  MatrixXd PHt = P_ * Ht;
-  MatrixXd K = PHt * Si;
+  MatrixXd K = P_ * Ht * Si;
 
-  // new estimate
   x_ = x_ + (K * y);
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
-
-
+  
+  
 }

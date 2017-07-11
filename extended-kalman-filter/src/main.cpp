@@ -45,7 +45,7 @@ int main()
     // The 2 signifies a websocket event
 
 	bool useRADAR = true;
-	bool useLIDAR = false;
+	bool useLIDAR = true;
 
 	if (length && length > 2 && data[0] == '4' && data[1] == '2')
     {
@@ -72,10 +72,8 @@ int main()
 
     	  bool useMeasure = false;
 
-    	  cout << "breakpoint 1" << endl;
     	  if ((sensor_type.compare("L") == 0) && (useLIDAR == true))
     	  {
-			cout << "It is a Laser measurement" << endl;
       	  		meas_package.sensor_type_ = MeasurementPackage::LASER;
           		meas_package.raw_measurements_ = VectorXd(2);
           		float px;
@@ -90,8 +88,7 @@ int main()
     	  else if ((sensor_type.compare("R") == 0) && (useRADAR == true))
     	  {
 
-        	  cout << "It is a Radar measurement" << endl;
-      	  		meas_package.sensor_type_ = MeasurementPackage::RADAR;
+       	  		meas_package.sensor_type_ = MeasurementPackage::RADAR;
           		meas_package.raw_measurements_ = VectorXd(3);
           		float ro;
       	  		float theta;
@@ -157,7 +154,6 @@ int main()
           msgJson["rmse_vx"] = RMSE(2);
           msgJson["rmse_vy"] = RMSE(3);
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 	  
         }
