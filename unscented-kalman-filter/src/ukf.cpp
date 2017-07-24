@@ -146,7 +146,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     
     if(NIS_out_ == 'r')
     {
-      std::cout << "time, NIS_radar" << std::endl;
+      //std::cout << "time, NIS_radar" << std::endl;
     }
 
     
@@ -182,7 +182,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     time_since_start_ += dt;
     if(NIS_out_ == 'r')
     {
-      std::cout << time_since_start_ << ", " << NIS_radar_ << std::endl;
+      //std::cout << time_since_start_ << ", " << NIS_radar_ << std::endl;
     }
     
 	time_us_ = meas_package.timestamp_;
@@ -197,7 +197,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     time_since_start_ += dt;
     if(NIS_out_ == 'l')
     {
-      std::cout << time_since_start_ << ", " << NIS_laser_ << std::endl;
+      //std::cout << time_since_start_ << ", " << NIS_laser_ << std::endl;
     }
     
 	time_us_ = meas_package.timestamp_;
